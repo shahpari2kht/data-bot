@@ -1,7 +1,6 @@
 from cleaner import clean_data
 from database import save_to_db
 from exporter import export_data
-
 def main():
     input_file = "../data/sample.csv" # مسیر فایل نمونه
     db_file = "../data/data_bot.db" # مسیر دیتابیس
