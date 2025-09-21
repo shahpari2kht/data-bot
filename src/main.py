@@ -13,7 +13,7 @@ def main():
     print("✅ Data cleaned.")
 
 # 2️⃣ ذخیره در دیتابیس
-    save_to_db(df, db_file, table_name)
+    save_to_db(df, table_name)
     print(f"✅ Data saved to database: {db_file}")
 
 # 3️⃣ خروجی گرفتن
@@ -21,4 +21,4 @@ def main():
     print(f"✅ Data exported to {output_file}")
 
 if __name__ == "__main__":
-main()
+    main()
