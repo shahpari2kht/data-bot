@@ -86,3 +86,7 @@ data-bot/
 Add query system
 Web/CLI interface
 Dockerize for deployment
+
+## Project Screenshot
+
+![Project Screenshot](./screenshot.png)
