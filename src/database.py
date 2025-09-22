@@ -1,34 +1,35 @@
-import psycopg2
 import pandas as pd
-from config import DB_CONFIG
+import psycopg2
+
+DB_CONFIG = {
+    "dbname": "data_bot_db",
+    "user": "shahpari2kht",
+    "password": "1017190N@nook",
+    "host": "localhost",
+    "port": 5432
+}
 
 def save_to_db(df: pd.DataFrame, table_name: str):
     """
-    Save a pandas DataFrame into a PostgreSQL database.
+    Save a pandas DataFrame into a PostgreSQL table.
     If the table exists, it will be replaced.
     """
     conn = psycopg2.connect(**DB_CONFIG)
-    cur = conn.cursor()
-
-    # پاک کردن جدول قبلی (اگر وجود داشته باشد)
-    cur.execute(f"DROP TABLE IF EXISTS {table_name};")
+    cursor = conn.cursor()
+    cursor.execute(f"DROP TABLE IF EXISTS {table_name};")
     conn.commit()
 
-    # ایجاد جدول جدید بر اساس ستون‌های DataFrame
+    # ساخت جدول با تمام ستون‌ها به‌صورت TEXT
     columns = ", ".join([f"{col} TEXT" for col in df.columns])
-    cur.execute(f"CREATE TABLE {table_name} ({columns});")
+    cursor.execute(f"CREATE TABLE {table_name} ({columns});")
     conn.commit()
 
-    # ذخیره داده‌ها ردیف به ردیف
+    # درج داده‌ها
     for _, row in df.iterrows():
-        values = [str(v) for v in row.tolist()]
-        placeholders = ", ".join(["%s"] * len(values))
-        cur.execute(
-            f"INSERT INTO {table_name} VALUES ({placeholders});",
-            values
-        )
+        values = "', '".join([str(val) for val in row])
+        cursor.execute(f"INSERT INTO {table_name} VALUES ('{values}');")
 
     conn.commit()
-    cur.close()
+    cursor.close()
     conn.close()
 
