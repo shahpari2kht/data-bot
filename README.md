@@ -9,7 +9,7 @@ Configurable table and file names
 🛠️ Installation & Setup
 Clone the repository
 
-git clone https://github.com/YourUsername/data-bot.git
+git clone https://github.com/shahpari2kht/data-bot.git
 
 cd data-bot
 
