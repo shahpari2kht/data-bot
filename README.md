@@ -1,92 +1,38 @@
-Data Bot
-A personal assistant bot for data cleaning, storing in PostgreSQL, and exporting results.
+# Data Bot
 
-🚀 Features
-Clean CSV datasets (remove nulls, standardize formats, etc.)
-Store cleaned data into PostgreSQL
-Export results as CSV, Excel, or JSON
-Configurable table and file names
-🛠️ Installation & Setup
-Clone the repository
+Data Bot is a lightweight query engine built in Python to filter and process structured profiles based on configurable filters.
 
-git clone https://github.com/shahpari2kht/data-bot.git
+## Features
+- **Multi-language support** (Persian, German, English)
+- Robust filter logic that ignores fields missing in data records
+- Simple, mock `TEST_DATA` included for development & testing
+- Profiles stored in `profiles.json` and executed via the command line
 
-cd data-bot
+## Project Structure
+src/
+├── profiles.json        # Profile filter configurations
+├── query_engine.py      # Query engine logic
+└── query_engine.py.save # Backup
 
-Create a virtual environment
+## How to Run
+1. Activate the virtual environment:
+   source venv/bin/activate
 
-python3 -m venv venv
+2. Run a specific profile:
+   python src/query_engine.py profile_tech_fa --json
 
-source venv/bin/activate
+## Example Output
+[
+  {"id": 1, "category": "Tech", "lang": "fa", "date": "2025-09-21"},
+  {"id": 2, "category": "Tech", "lang": "fa", "date": "2025-09-25"}
+]
 
-Install dependencies
+## Future Improvements
+- Integrate real-world datasets
+- Add date filtering logic for `date_range`
+- Deploy as API and Docker container
 
-pip install -r requirements.txt
-
-pip install psycopg2-binary
-
-Setup PostgreSQL
-
-⬤ Create database and user:
-
-CREATE USER shahpari2kht WITH PASSWORD ‘1017190N@nook’;
-
-CREATE DATABASE data_bot_db OWNER shahpari2kht;
-
-GRANT ALL PRIVILEGES ON DATABASE data_bot_db TO shahpari2kht;
-
-⬤ Grant schema permissions:
-
-\c data_bot_db
-
-GRANT ALL PRIVILEGES ON SCHEMA public TO shahpari2kht;
-
-ALTER SCHEMA public OWNER TO shahpari2kht;
-
-▶️ Usage
-python src/main.py
-
-Expected output:
-
-✅ Data cleaned.
-
-✅ Data saved to PostgreSQL table: dataset
-
-✅ Data exported to data/cleaned.csv
-
-📂 Project Structure
-data-bot/
-
-│── data/
-
-│ ├── sample.csv
-
-│ ├── cleaned.csv
-
-│── src/
-
-│ ├── main.py
-
-│ ├── cleaner.py
-
-│ ├── database.py
-
-│ ├── exporter.py
-
-│── requirements.txt
-
-│── README.md
-
-│── venv/ (excluded in .gitignore)
-
-📸 Example Run
-
-
-📅 Roadmap
-Add query system
-Web/CLI interface
-Dockerize for deployment
-
-## Project Screenshot
-
-![Project Screenshot](./screenshot.png)
+## Author
+**Parisa Mohammadzadeh**  
+Languages: Persian (native), Kurdish, Arabic, German (B2), English (Intermediate)  
+Location: Ilam, Iran → Planning migration to Germany.
