@@ -1,0 +1,18 @@
+{
+    "profile_news_en": {
+        "category": "news",
+        "lang": "en"
+    },
+    "profile_tech_fa": {
+        "category": "technology",
+        "lang": "fa"
+    },
+    "profile_general_multi": {
+        "category": "general",
+        "lang": ["fa", "en", "de"]
+    },
+    "profile_news_de": {
+        "category": "news",
+        "lang": "de"
+    }
+}

@@ -1,87 +1,81 @@
+import json
+import re
+from pathlib import Path
 import argparse
-import pandas as pd
-from .db_connector import connect_db
 
-def build_conditions(args):
-    conditions = []
+profiles_path = Path(__file__).parent / "profiles.json"
+with open(profiles_path, "r", encoding="utf-8") as f:
+    FILTER_PROFILES = json.load(f)
 
-    if args.cities:
-        cities_list = "', '".join([c.lower() for c in args.cities])
-        conditions.append(f"LOWER(city) IN ('{cities_list}')")
+TEST_DATA = [
+    {"lang": "en", "category": "news", "title": "Breaking News 1"},
+    {"lang": "en", "category": "news", "title": "Breaking News 2"},
 
-    if args.min_age is not None:
-        conditions.append(f"age >= {args.min_age}")
+    {"lang": "fa", "category": "technology", "title": "فناوری روز ایران"},
+    {"lang": "fa", "category": "technology", "title": "نوآوری\u200cهای هوش مصنوعی"},
+    {"lang": "fa", "category": "technology", "title": "پیشرفت\u200cهای رباتیک"},
 
-    if args.max_age is not None:
-        conditions.append(f"age <= {args.max_age}")
+    {"lang": "de", "category": "news", "title": "Nachrichten aus Berlin"},
+    {"lang": "de", "category": "news", "title": "Technologie Nachrichten"},
 
-    if args.names:
-        names_list = "', '".join([n.lower() for n in args.names])
-        conditions.append(f"LOWER(name) IN ('{names_list}')")
+    {"lang": "fa", "category": "general", "title": "اخبار عمومی"},
+    {"lang": "en", "category": "general", "title": "General News"},
+    {"lang": "de", "category": "general", "title": "Allgemeine Nachrichten"}
+]
 
-    if args.start_date:
-        conditions.append(f"record_date >= '{args.start_date}'")
+def normalize_val(val):
+    s = str(val).strip().lower()
+    s = re.sub(r'[\u200c\u200b]', '', s)
+    return s
 
-    if args.end_date:
-        conditions.append(f"record_date <= '{args.end_date}'")
+def process_query(filters):
+    results = []
+    for record in TEST_DATA:
+        match = True
+        for key, val in filters.items():
+            rec_val_raw = record.get(key)
 
-    return " AND ".join(conditions) if conditions else "1=1"
+            # اگر رکورد این فیلد رو نداره، فیلتر رو نادیده بگیر
+            if rec_val_raw is None:
+                continue
+
+            rec_val = normalize_val(rec_val_raw)
+            val_norm = normalize_val(val)
+
+            # اگر فیلتر مقدار لیستی داره
+            if isinstance(val_norm, list):
+                if rec_val not in val_norm:
+                    match = False
+                    break
+            # اگر فقط یک مقدار ساده است
+            else:
+                if rec_val != val_norm:
+                    match = False
+                    break
+
+        if match:
+            results.append(record)
+    return results
 
 
-def interactive_input():
-    cities = input("Enter cities (comma-separated) or leave blank: ").strip()
-    cities = cities.split(",") if cities else None
-
-    min_age = input("Enter minimum age or leave blank: ").strip()
-    min_age = int(min_age) if min_age else None
-
-    max_age = input("Enter maximum age or leave blank: ").strip()
-    max_age = int(max_age) if max_age else None
-
-    names = input("Enter names (comma-separated) or leave blank: ").strip()
-    names = names.split(",") if names else None
-
-    start_date = input("Enter start date (YYYY-MM-DD) or leave blank: ").strip() or None
-    end_date = input("Enter end date (YYYY-MM-DD) or leave blank: ").strip() or None
-
-    return argparse.Namespace(
-        cities=[c.strip() for c in cities] if cities else None,
-        min_age=min_age,
-        max_age=max_age,
-        names=[n.strip() for n in names] if names else None,
-        start_date=start_date,
-        end_date=end_date
-    )
-
-def filter_and_export(args):
-    engine = connect_db()
-    where_clause = build_conditions(args)
-    query = f"SELECT * FROM data_records WHERE {where_clause};"
-
-    df = pd.read_sql(query, engine)
-    
-    if df.empty:
-        print("⚠️ No matching records found.")
+def run_query(profile_name, output_json):
+    if profile_name not in FILTER_PROFILES:
+        print(f"Profile '{profile_name}' not found.")
         return
 
-    print(df.head())  # نمایش خلاصه‌ای از داده‌ها
-    df.to_csv("data/filtered_data.csv", index=False)
-    df.to_excel("data/filtered_data.xlsx", index=False)
-    print(f"✅ Exported {len(df)} records to data/filtered_data.csv and data/filtered_data.xlsx.")
+    filters = FILTER_PROFILES[profile_name]
+    results = process_query(filters)
+
+    if output_json:
+        print(json.dumps(results, ensure_ascii=False, indent=2))
+    else:
+        for r in results:
+            print(f"{r['lang']} | {r['category']} | {r['title']}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Filter PostgreSQL data with CLI or interactive mode")
-    parser.add_argument("--cities", nargs="+", help="Cities to filter")
-    parser.add_argument("--min_age", type=int, help="Minimum age")
-    parser.add_argument("--max_age", type=int, help="Maximum age")
-    parser.add_argument("--names", nargs="+", help="Names to filter")
-    parser.add_argument("--start_date", help="Start date (YYYY-MM-DD)")
-    parser.add_argument("--end_date", help="End date (YYYY-MM-DD)")
-    
+    parser = argparse.ArgumentParser(description="Query Engine")
+    parser.add_argument("profile", help="Profile name from profiles.json")
+    parser.add_argument("--json", action="store_true", help="Output as JSON")
     args = parser.parse_args()
 
-    # اگر هیچ آرگومان داده نشد، حالت تعاملی اجرا می‌شود
-    if not any(vars(args).values()):
-        args = interactive_input()
-
-    filter_and_export(args)
+    run_query(args.profile, args.json)
